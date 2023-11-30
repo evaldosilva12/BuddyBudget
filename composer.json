@@ -1,0 +1,16 @@
+{
+    "name": "evaldo/budgetbuddy",
+    "autoload": {
+        "psr-4": {
+            "Evaldo\\Budgetbuddy\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Evaldo"
+        }
+    ],
+    "require": {
+        "mongodb/mongodb": "^1.12"
+    }
+}
