@@ -1,7 +1,7 @@
 <div class="menu-section">
     <div class="menu-item">
       <i class="menu-icon fas fa-home"></i>
-      <a href="index.php" class="nav-link">Home</a>
+      <a href="index.php?days=30" class="nav-link">Home</a>
     </div>
     <div class="menu-item">
       <i class="menu-icon fas fa-list"></i>

@@ -3,7 +3,7 @@ session_start();
 
 // Redirect to login if the user is not logged in
 if (!isset($_SESSION['UserId'])) {
-    header("Location: login.html");
+    header("Location: login.php");
     exit;
 }
 
@@ -73,6 +73,7 @@ $currentBalance = $totalIncome - $totalExpenses;
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Budget Buddy</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900,300">
 
