@@ -13,18 +13,14 @@ $userId = $_SESSION['UserId'];
 require 'vendor/autoload.php';
 
 // Get the number of days from the URL parameter, default to 15 if not set
-$days = isset($_GET['days']) ? (int)$_GET['days'] : 15;
+$days = isset($_GET['days']) ? (int)$_GET['days'] : 30;
 
 // Calculate the date for 'n' days ago in 'Y-m-d' format
 $dateNDaysAgo = new DateTime();
 $dateNDaysAgo->modify("-$days days");
 $dateNDaysAgoFormatted = $dateNDaysAgo->format('Y-m-d');
 
-// ...rest of your PHP code remains the same...
-
-
 // Connect to MongoDB and fetch data
-// (Add error handling as necessary)
 $client = new MongoDB\Client("mongodb+srv://evaldo:JaR1BTyn1U6m9RhA@cluster0.ouhw8da.mongodb.net");
 $db = $client->selectDatabase('budgetbuddy');
 
@@ -98,11 +94,6 @@ foreach ($categoryResult as $category) {
 $categoryExpensesJson = json_encode($categoryExpenses);
 $incomeExpenseDataJson = json_encode(['Income' => $totalIncome, 'Expenses' => $totalExpenses]);
 
-
-
-
-
-
 // Initialize array for budgets
 $categoryBudgets = [];
 $totalBudget = 0;
@@ -129,7 +120,6 @@ foreach ($categoryResult as $category) {
         }
     }
 }
-
 
 
 // Initialize array for budgets
@@ -189,14 +179,14 @@ $totalBalance = $totalIncome - $totalExpenses;
 
 // Fetch the last 5 transactions for the user, irrespective of the date range
 $pipeline = [
-    ['$match' => ['Transactions.UserId' => $userId]], // Match documents where Transactions.UserId equals the user ID
-    ['$unwind' => '$Transactions'], // Unwind the Transactions array
-    ['$match' => ['Transactions.UserId' => $userId]], // Match unwound transactions for the specific user
-    ['$sort' => ['Transactions.Date' => -1]], // Sort transactions by date in descending order
-    ['$limit' => 5], // Limit to the last 5 transactions
-    ['$group' => [ // Group to collect these transactions
+    ['$match' => ['Transactions.UserId' => $userId]],
+    ['$unwind' => '$Transactions'],
+    ['$match' => ['Transactions.UserId' => $userId]],
+    ['$sort' => ['Transactions.Date' => -1]],
+    ['$limit' => 5],
+    ['$group' => [
         '_id' => '$userId',
-        'RecentTransactions' => ['$push' => '$Transactions'] // Push the transactions into an array
+        'RecentTransactions' => ['$push' => '$Transactions']
     ]]
 ];
 
@@ -210,16 +200,12 @@ foreach ($result as $doc) {
 }
 
 
-
-
-
 $remainingBudgets = [];
 foreach ($categoryBudgets as $categoryName => $budget) {
     $spent = $categoryExpenses[$categoryName] ?? 0;
     $remaining = $budget - $spent;
     $remainingBudgets[$categoryName] = $remaining;
 }
-
 
 ?>
 
@@ -288,11 +274,9 @@ foreach ($categoryBudgets as $categoryName => $budget) {
         #newCategoryModal .modal-content {
             background-color: white;
             margin: 15% auto;
-            /* 15% from the top and centered */
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
-            /* Could be more or less, depending on screen size */
         }
 
         .close {
@@ -439,7 +423,7 @@ foreach ($categoryBudgets as $categoryName => $budget) {
                                 </thead>
                                 <tbody>
                                     <?php foreach ($recentTransactions as $transaction): ?>
-                                    <tr>
+                                    <tr style="color: <?php echo $transaction['Type'] == 'Expense' ? 'red' : 'blue'; ?>;">
                                         <td>
                                             <?php echo $transaction['Date']; ?>
                                         </td>
@@ -454,7 +438,7 @@ foreach ($categoryBudgets as $categoryName => $budget) {
                                 </tbody>
                             </table>
 
-                            <a href="link_to_detailed_transactions_page.php">See More</a>
+                            <a href="transactions.php" class="btn btn-primary btn-sm">See More</a>
                         </div>
                         </div>                        
                     </div>
@@ -472,8 +456,13 @@ foreach ($categoryBudgets as $categoryName => $budget) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($categoryBudgets as $categoryName => $budget): ?>
-                                    <tr>
+                                <?php foreach ($categoryBudgets as $categoryName => $budget): ?>
+                                    <?php 
+                                        $spent = $categoryExpenses[$categoryName] ?? 0;
+                                        $remaining = $budget - $spent;
+                                        $color = $remaining >= 0 ? 'blue' : 'red';
+                                    ?>
+                                    <tr style="color: <?php echo $color; ?>;">
                                         <td>
                                             <?php echo $categoryName; ?>
                                         </td>
@@ -571,7 +560,6 @@ foreach ($categoryBudgets as $categoryName => $budget) {
             'rgba(255, 69, 0, 0.2)',
             'rgba(0, 128, 128, 0.2)',
             'rgba(128, 0, 128, 0.2)',
-            // ... add as many as you want
         ];
 
         var categoryExpensesData = <?php echo $categoryExpensesJson; ?>;
@@ -579,11 +567,9 @@ foreach ($categoryBudgets as $categoryName => $budget) {
         var categoryBorderColors = [];
 
         Object.keys(categoryExpensesData).forEach(function (key, index) {
-            // Use predefined color or generate a random color if you run out
             var color = predefinedColors[index % predefinedColors.length] || getRandomColor();
             categoryColors.push(color);
 
-            // For border color, you can slightly modify the main color or use a different logic
             var borderColor = color.replace('0.2', '1'); // Changing alpha for border
             categoryBorderColors.push(borderColor);
         });
@@ -654,29 +640,44 @@ foreach ($categoryBudgets as $categoryName => $budget) {
         //         }
         //     }
         // });
-        var ctx3 = document.getElementById('totalBudgetChart').getContext('2d');
-        var totalBudgetChart = new Chart(ctx3, {
-            type: 'bar',
-            data: {
-                labels: ['Total Budget', 'Total Spent'],
-                datasets: [{
-                    label: 'Amount',
-                    data: [totalData.TotalBudget, totalData.TotalSpent],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.5)',
-                        'rgba(255, 99, 132, 0.5)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
-                }]
+var ctx3 = document.getElementById('totalBudgetChart').getContext('2d');
+var totalBudgetChart = new Chart(ctx3, {
+    type: 'bar',
+    data: {
+        labels: ['Total Budget', 'Total Spent'],
+        datasets: [{
+            data: [totalData.TotalBudget, totalData.TotalSpent],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 99, 132, 0.5)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        plugins: {
+            legend: {
+                display: false // Ensure the legend is not displayed
             },
-            options: {
-                indexAxis: 'y',
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.chart.data.labels[context.dataIndex];
+                        let value = context.raw;
+                        return label + ': ' + value;
+                    }
+                }
             }
-        });          
+        },
+        // ... other options ...
+    }
+});
+          
     </script>
 <script>
     function updateChartsWithDateRange() {

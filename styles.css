@@ -72,17 +72,21 @@ body {
     padding: 18px 15px 15px;
   }
 
-  .menu-item:hover {
+  .menu-item:hover,
+  .menu-item.active {
     background-color: rgba(237,240,245,.5);
     color: #10c469;
+    text-decoration: none;
+    font-weight: 800;
   }
 
-  .menu-item a {
+  a.menu-item {
     color: #6a6c6f;
   }
 
   .menu-item a:hover {
     color: #10c469;
+    font-weight: bold;
   }
 
   .menu-icon {
